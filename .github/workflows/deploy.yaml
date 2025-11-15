@@ -30,10 +30,25 @@ jobs :
               chmod 400 newkeypair.pem
             fi 
             echo "------deploying frontend application ------"
-            if [ -d "java-react-fullstack" ]; then
-              echo "repo allready exits deleting it and recloning"
-              rm -rf java-react-fullstack
-            fi 
             sudo apt update -y 
             sudo apt install git docker.io -y 
-            sudo git clone https://github.com/prathap4414/java-react-fullstack.git
+            if [ -d "java-react-fullstack" ]; then
+              echo "repo allready exits  pulling the latest changes "
+              cd java-react-fullstack
+              git pull origin main
+            else
+              echo "clonning the repo as it does not exist "
+              git clone https://github.com/prathap4414/java-react-fullstack.git
+            fi 
+      - name : deloying the frontend image and container
+        uses : appleboy/ssh-action@v0.1.10
+        with : 
+          host : ${{ secrets.FRONTEND_EC2_IP }}
+          username : ubuntu
+          key : ${{ secrets.EC2_SSH_KEY }}
+          script : | 
+            echo "------connected to frontend ec2------"
+            echo "------deploying frontend docker image and container ------"
+            cd java-react-fullstack/frontend
+            sudo docker build -t frontend-image .
+            sudo docker run -d -p 80:80 --name frontend-container frontend-image
