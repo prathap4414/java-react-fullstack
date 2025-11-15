@@ -1,0 +1,32 @@
+name : deployment of project built on java and node 
+on : 
+  workflow_dispatch :
+  push : 
+    branches : 
+      - main
+jobs : 
+  deploy :
+    runs-on : ubuntu-latest
+    steps : 
+      - name : checkout repo 
+        uses : actions/checkout@v3
+      - name : creating key pair file
+        run : | 
+          echo " ${{ secrets.EC2_SSH_KEY }} " > newkeypair.pem
+          chmod 400 newkeypair.pem
+      - name : ssh into frontend ec2 and deploy frontend 
+        uses : appleboy/ssh-action@v0.1.10
+        with : 
+          host : ${{ secrets.FRONTEND_EC2_IP }}
+          username : ubuntu
+          key : ${{ secrets.EC2_SSH_KEY }}
+          script : | 
+            echo "------connected to frontend ec2------"
+            echo "------creting ssh key pair ----------"
+            echo" ${{ secrets.EC2_SSH_KEY }} " > newkeypair.pem
+            chmod 400 newkeypair.pem
+            echo "------deploying frontend application ------"
+            sudo -i 
+            apt update -y 
+            apt install git docker.io -y 
+            git clone 
