@@ -1,52 +1,69 @@
-name : deployment of project built on java and node 
-on : 
-  workflow_dispatch :
-  push : 
-    branches : 
+name: deployment of project built on java and node
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
       - main
-jobs : 
-  deploy :
-    runs-on : ubuntu-latest
-    steps : 
-      - name : checkout repo 
-        uses : actions/checkout@v3
-      - name : creating key pair file
-        run : | 
-          echo " ${{ secrets.EC2_SSH_KEY }} " > newkeypair.pem
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v3
+
+      - name: creating key pair file
+        run: |
+          echo "${{ secrets.EC2_SSH_KEY }}" > newkeypair.pem
           chmod 400 newkeypair.pem
-      - name : ssh into frontend ec2 and deploy frontend 
-        uses : appleboy/ssh-action@v0.1.10
-        with : 
-          host : ${{ secrets.FRONTEND_EC2_IP }}
-          username : ubuntu
-          key : ${{ secrets.EC2_SSH_KEY }}
-          script : | 
+
+      - name: ssh into frontend ec2 and deploy frontend
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.FRONTEND_EC2_IP }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
             echo "------connected to frontend ec2------"
-            echo "------creting ssh key pair ----------"
+
+            # Fix permissions (important)
+            sudo chown -R ubuntu:ubuntu /home/ubuntu
+
+            echo "------creating ssh key pair ----------"
             if [ -f "newkeypair.pem" ]; then
-              echo " key pair file already exists "
+              echo "key pair file already exists"
             else
-              echo" ${{ secrets.EC2_SSH_KEY }} " > newkeypair.pem
+              echo "${{ secrets.EC2_SSH_KEY }}" > newkeypair.pem
               chmod 400 newkeypair.pem
-            fi 
+            fi
+
             echo "------deploying frontend application ------"
-            sudo apt update -y 
-            sudo apt install git docker.io -y 
+            sudo apt update -y
+            sudo apt install git docker.io -y
+
             if [ -d "java-react-fullstack" ]; then
-              echo " repo already exists , reoving it ""
+              echo "repo already exists, removing it"
               rm -rf java-react-fullstack
             fi
+
+            echo "cloning fresh repo"
             git clone https://github.com/prathap4414/java-react-fullstack.git
-            
-      - name : deloying the frontend image and container
-        uses : appleboy/ssh-action@v0.1.10
-        with : 
-          host : ${{ secrets.FRONTEND_EC2_IP }}
-          username : ubuntu
-          key : ${{ secrets.EC2_SSH_KEY }}
-          script : | 
+
+      - name: deploying the frontend image and container
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.FRONTEND_EC2_IP }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
             echo "------connected to frontend ec2------"
             echo "------deploying frontend docker image and container ------"
+
             cd java-react-fullstack/frontend
+
+            sudo docker stop frontend-container || true
+            sudo docker rm frontend-container || true
+
             sudo docker build -t frontend-image .
             sudo docker run -d -p 80:80 --name frontend-container frontend-image
