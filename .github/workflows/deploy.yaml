@@ -1,7 +1,7 @@
 name: deployment of project built on java and node
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: {}
   push:
     branches:
       - main
@@ -9,13 +9,14 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: checkout repo
         uses: actions/checkout@v3
 
       - name: creating key pair file
         run: |
-          echo "${{ secrets.EC2_SSH_KEY }}" > newkeypair.pem
+          printf "%s" "${{ secrets.EC2_SSH_KEY }}" > newkeypair.pem
           chmod 400 newkeypair.pem
 
       - name: ssh into frontend ec2 and deploy frontend
@@ -26,28 +27,19 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             echo "------connected to frontend ec2------"
-
-            # Fix permissions (important)
             sudo chown -R ubuntu:ubuntu /home/ubuntu
 
-            echo "------creating ssh key pair ----------"
             if [ -f "newkeypair.pem" ]; then
               echo "key pair file already exists"
             else
-              echo "${{ secrets.EC2_SSH_KEY }}" > newkeypair.pem
+              printf "%s" "${{ secrets.EC2_SSH_KEY }}" > newkeypair.pem
               chmod 400 newkeypair.pem
             fi
 
-            echo "------deploying frontend application ------"
             sudo apt update -y
             sudo apt install git docker.io -y
 
-            if [ -d "java-react-fullstack" ]; then
-              echo "repo already exists, removing it"
-              rm -rf java-react-fullstack
-            fi
-
-            echo "cloning fresh repo"
+            rm -rf java-react-fullstack || true
             git clone https://github.com/prathap4414/java-react-fullstack.git
 
       - name: deploying the frontend image and container
@@ -58,7 +50,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             echo "------connected to frontend ec2------"
-            echo "------deploying frontend docker image and container ------"
+            echo "------deploying frontend docker image and container------"
 
             cd java-react-fullstack/frontend
 
@@ -67,7 +59,6 @@ jobs:
 
             sudo docker build -t frontend-image .
             sudo docker run -d -p 80:80 --name frontend-container frontend-image
-       
 
       - name: Deploy backend from frontend EC2
         uses: appleboy/ssh-action@v0.1.10
@@ -77,29 +68,30 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             echo "===== Connected to FRONTEND EC2 ====="
+
+            # write backend SSH key
+            printf "%s" "${{ secrets.EC2_SSH_KEY }}" > newkeypair.pem
             chmod 400 newkeypair.pem
+
             echo "===== SSH into BACKEND EC2 ====="
             ssh -o StrictHostKeyChecking=no \
-            -i newkeypair.pem \
-            ubuntu@${{ secrets.BACKEND_EC2_IP }} << 'EOF'
+                -i newkeypair.pem \
+                ubuntu@${{ secrets.BACKEND_EC2_IP }} << 'EOF'
 
-            echo "===== Connected to BACKEND EC2 ====="
-            sudo apt update -y
-            sudo apt install git docker.io -y
+echo "===== Connected to BACKEND EC2 ====="
 
-            if [ -d "java-react-fullstack" ]; then
-              echo "Removing old repo..."
-              rm -rf java-react-fullstack
-            fi
+sudo apt update -y
+sudo apt install git docker.io -y
 
-            git clone https://github.com/prathap4414/java-react-fullstack.git
+rm -rf java-react-fullstack || true
+git clone https://github.com/prathap4414/java-react-fullstack.git
 
-            cd java-react-fullstack/backend
-            sudo docker build -t backend-image .
+cd java-react-fullstack/backend
+sudo docker build -t backend-image .
 
-            sudo docker rm -f backend-container || true
-            sudo docker run -d -p 8080:8080 --name backend-container backend-image
+sudo docker rm -f backend-container || true
+sudo docker run -d -p 8080:8080 --name backend-container backend-image
 
-            echo "===== BACKEND DEPLOYED SUCCESSFULLY ====="
+echo "===== BACKEND DEPLOYED SUCCESSFULLY ====="
 
-            EOF
+EOF
