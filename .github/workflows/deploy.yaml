@@ -23,10 +23,17 @@ jobs :
           script : | 
             echo "------connected to frontend ec2------"
             echo "------creting ssh key pair ----------"
-            echo" ${{ secrets.EC2_SSH_KEY }} " > newkeypair.pem
-            sudo chmod 400 newkeypair.pem
+            if [ -d "newkeypair.pem" ]; then
+              echo " key pair file already exists "
+            else
+              echo" ${{ secrets.EC2_SSH_KEY }} " > newkeypair.pem
+              chmod 400 newkeypair.pem
+            fi 
             echo "------deploying frontend application ------"
-            sudo -i 
-            apt update -y 
-            apt install git docker.io -y 
-            git clone https://github.com/prathap4414/java-react-fullstack.git
+            if [ -d "java-react-fullstack" ]; then
+              echo "repo allready exits deleting it and recloning"
+              rm -rf java-react-fullstack
+            fi 
+            sudo apt update -y 
+            sudo apt install git docker.io -y 
+            sudo git clone https://github.com/prathap4414/java-react-fullstack.git
