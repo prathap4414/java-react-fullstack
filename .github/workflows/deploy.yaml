@@ -23,7 +23,7 @@ jobs :
           script : | 
             echo "------connected to frontend ec2------"
             echo "------creting ssh key pair ----------"
-            if [ -d "newkeypair.pem" ]; then
+            if [ -f "newkeypair.pem" ]; then
               echo " key pair file already exists "
             else
               echo" ${{ secrets.EC2_SSH_KEY }} " > newkeypair.pem
