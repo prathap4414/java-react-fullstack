@@ -24,9 +24,9 @@ jobs :
             echo "------connected to frontend ec2------"
             echo "------creting ssh key pair ----------"
             echo" ${{ secrets.EC2_SSH_KEY }} " > newkeypair.pem
-            chmod 400 newkeypair.pem
+            sudo chmod 400 newkeypair.pem
             echo "------deploying frontend application ------"
             sudo -i 
             apt update -y 
             apt install git docker.io -y 
-            git clone 
+            git clone https://github.com/prathap4414/java-react-fullstack.git
