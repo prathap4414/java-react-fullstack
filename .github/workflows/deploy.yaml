@@ -33,14 +33,11 @@ jobs :
             sudo apt update -y 
             sudo apt install git docker.io -y 
             if [ -d "java-react-fullstack" ]; then
-              echo "repo allready exits  pulling the latest changes "
-              git config --global --add safe.directory /home/ubuntu/java-react-fullstack
-              cd java-react-fullstack
-              git pull origin main
-            else
-              echo "clonning the repo as it does not exist "
-              git clone https://github.com/prathap4414/java-react-fullstack.git
-            fi 
+              echo " repo already exists , reoving it ""
+              rm -rf java-react-fullstack
+            fi
+            git clone https://github.com/prathap4414/java-react-fullstack.git
+            
       - name : deloying the frontend image and container
         uses : appleboy/ssh-action@v0.1.10
         with : 
