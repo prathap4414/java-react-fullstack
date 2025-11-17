@@ -19,7 +19,7 @@ jobs:
       - name: Deploy Frontend
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.PUBLIC_EC2_IP }}
+          host: ${{ secrets.FRONTEND_EC2_IP }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
@@ -33,19 +33,5 @@ jobs:
       # ----------------------------------------
       # SSH into PRIVATE EC2 USING JUMP HOST
       # ----------------------------------------
-      - name: Deploy Backend
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.PRIVATE_EC2_IP }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          proxy_host: ${{ secrets.PUBLIC_EC2_IP }}
-          proxy_username: ubuntu
-          proxy_key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            cd /home/ubuntu/<BACKEND_FOLDER>
-            git pull origin main
-            docker build -t backend-app .
-            docker stop backend || true
-            docker rm backend || true
-            docker run -d --name backend -p 8080:8080 backend-app
+      
+      
