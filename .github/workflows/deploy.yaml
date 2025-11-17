@@ -62,4 +62,46 @@ jobs:
       # SSH into PRIVATE EC2 USING JUMP HOST
       # ----------------------------------------
       
-      
+      - name: Deploy Backend
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.BACKEND_EC2_IP }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          proxy_host: ${{ secrets.FRONTEND_EC2_IP }}
+          proxy_username: ubuntu
+          proxy_key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            sudo apt update -y 
+            sudo apt install docker.io git -y 
+
+            cd /home/ubuntu
+
+            # Clone or enter repo
+            if [ -d "java-react-fullstack" ]; then
+              cd java-react-fullstack
+              echo "Pulling latest changes..."
+              PULL_OUTPUT=$(git pull origin main)
+              echo "$PULL_OUTPUT"
+            else
+              echo "Cloning repo first time..."
+              git clone https://github.com/prathap4414/java-react-fullstack.git
+              cd java-react-fullstack
+              PULL_OUTPUT="changed"   # Force build first time
+            fi
+
+            # Only rebuild Docker image if code changed
+            if echo "$PULL_OUTPUT" | grep -q "Already up to date"; then
+              echo "No code changes. Skipping Docker build."
+              exit 0
+            else
+              echo "Code changed! Rebuilding Docker image..."
+              cd backend
+
+              sudo docker build -t backend-app .
+
+              sudo docker stop backend || true
+              sudo docker rm backend || true
+
+              sudo docker run -d --name backend -p 8080:8080 backend-app
+            fi
