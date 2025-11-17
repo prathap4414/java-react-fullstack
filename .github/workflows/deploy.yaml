@@ -23,8 +23,10 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd /home/ubuntu/<FRONTEND_FOLDER>
-            git pull origin main
+            sudo apt update -y 
+            sudo apt install docker.io git -y 
+            git clone https://github.com/prathap4414/java-react-fullstack.git
+            cd /home/ubuntu/java-react-fullstack/frontend
             docker build -t frontend-app .
             docker stop frontend || true
             docker rm frontend || true
