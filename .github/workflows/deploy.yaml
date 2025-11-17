@@ -27,10 +27,10 @@ jobs:
             sudo apt install docker.io git -y 
             git clone https://github.com/prathap4414/java-react-fullstack.git
             cd /home/ubuntu/java-react-fullstack/frontend
-            docker build -t frontend-app .
-            docker stop frontend || true
-            docker rm frontend || true
-            docker run -d --name frontend -p 80:80 frontend-app
+            sudo docker build -t frontend-app .
+            sudo docker stop frontend || true
+            sudo docker rm frontend || true
+            sudo docker run -d --name frontend -p 80:80 frontend-app
 
       # ----------------------------------------
       # SSH into PRIVATE EC2 USING JUMP HOST
