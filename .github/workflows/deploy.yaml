@@ -87,7 +87,7 @@ jobs:
               echo "Cloning repo first time..."
               git clone https://github.com/prathap4414/java-react-fullstack.git
               cd java-react-fullstack
-              PULL_OUTPUT="changed"   # Force build first time
+              PULL_OUTPUT="changed"   # Force build first timeeee
             fi
 
             # Only rebuild Docker image if code changed
