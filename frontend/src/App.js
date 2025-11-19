@@ -5,7 +5,7 @@ function App() {
   const [status, setStatus] = useState("Click the button to connect to backend...");
 
   const fetchMessage = () => {
-    fetch("http://internal-INTERANL-ALB-104375385.ap-south-1.elb.amazonaws.com/api/hello")
+    fetch("/api/hello")
       .then(res => {
         if (!res.ok) throw new Error("Backend offline");
         return res.json();
