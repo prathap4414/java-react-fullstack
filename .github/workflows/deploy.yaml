@@ -28,7 +28,7 @@ jobs:
             sudo apt install docker.io git -y 
 
             cd /home/ubuntu
-
+            # hehehe
             # Clone or enter repo
             if [ -d "java-react-fullstack" ]; then
               cd java-react-fullstack
